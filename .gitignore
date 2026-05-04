@@ -1,0 +1,22 @@
+# dbt
+dbt_project/target/
+dbt_project/dbt_packages/
+dbt_project/logs/
+
+# Python
+dbt-env/
+__pycache__/
+*.pyc
+
+# Airflow
+logs/
+airflow/logs/
+
+# GCP credentials — NEVER commit
+*.json
+gcp-key*
+.env
+
+# OS
+.DS_Store
+Thumbs.dbdbt_project/profiles.yml 

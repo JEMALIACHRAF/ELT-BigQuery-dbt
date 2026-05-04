@@ -1,0 +1,118 @@
+version: 2
+
+sources:
+  - name: raw_ecommerce
+    description: "Raw data ingested from the e-commerce transactional database via Fivetran"
+    database: "projet-dbt-495310"
+    schema: dev_ecommerce_raw_ecommerce
+    tags: ["source", "ecommerce"]
+
+    freshness:
+      warn_after: {count: 12, period: hour}
+      error_after: {count: 24, period: hour}
+
+    tables:
+      - name: orders
+        description: "All customer orders from the transactional DB"
+        loaded_at_field: _fivetran_synced
+        freshness:
+          warn_after: {count: 6, period: hour}
+          error_after: {count: 12, period: hour}
+        columns:
+          - name: order_id
+            description: "Primary key — unique order identifier"
+            tests:
+              - unique
+              - not_null
+          - name: customer_id
+            tests:
+              - not_null
+              - relationships:
+                  to: source('raw_ecommerce', 'customers')
+                  field: customer_id
+          - name: status
+            tests:
+              - not_null
+              - accepted_values:
+                  values: ["pending", "confirmed", "shipped", "delivered", "cancelled", "refunded"]
+          - name: created_at
+            tests:
+              - not_null
+          - name: total_amount
+            tests:
+              - not_null
+              - dbt_utils.expression_is_true:
+                  expression: ">= 0"
+
+      - name: customers
+        description: "Customer master data"
+        loaded_at_field: _fivetran_synced
+        columns:
+          - name: customer_id
+            tests:
+              - unique
+              - not_null
+          - name: email
+            tests:
+              - unique
+              - not_null
+          - name: country_code
+            tests:
+              - not_null
+              - accepted_values:
+                  values: ["FR", "DE", "ES", "IT", "GB", "US", "BE", "NL"]
+
+      - name: order_items
+        description: "Line items within each order"
+        loaded_at_field: _fivetran_synced
+        columns:
+          - name: order_item_id
+            tests:
+              - unique
+              - not_null
+          - name: order_id
+            tests:
+              - not_null
+              - relationships:
+                  to: source('raw_ecommerce', 'orders')
+                  field: order_id
+          - name: product_id
+            tests:
+              - not_null
+          - name: quantity
+            tests:
+              - not_null
+              - dbt_utils.expression_is_true:
+                  expression: "> 0"
+          - name: unit_price
+            tests:
+              - not_null
+              - dbt_utils.expression_is_true:
+                  expression: "> 0"
+
+      - name: products
+        description: "Product catalog"
+        loaded_at_field: _fivetran_synced
+        columns:
+          - name: product_id
+            tests:
+              - unique
+              - not_null
+          - name: category
+            tests:
+              - not_null
+          - name: name
+            tests:
+              - not_null
+
+      - name: sessions
+        description: "Web analytics sessions (GA4 export)"
+        loaded_at_field: event_timestamp
+        freshness:
+          warn_after: {count: 3, period: hour}
+          error_after: {count: 6, period: hour}
+        columns:
+          - name: session_id
+            tests:
+              - unique
+              - not_null

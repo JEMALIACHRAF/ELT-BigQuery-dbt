@@ -1,0 +1,6 @@
+product_id,name,category,sub_category,price,is_active,_fivetran_synced
+P001,Running Shoes Pro,Sports,Footwear,89.99,true,2024-01-01 00:00:00
+P002,Yoga Mat Premium,Sports,Equipment,34.99,true,2024-01-01 00:00:00
+P003,Python Programming Book,Books,Tech,29.99,true,2024-01-01 00:00:00
+P004,Wireless Headphones,Electronics,Audio,149.99,true,2024-01-01 00:00:00
+P005,Coffee Maker Deluxe,Home,Kitchen,79.99,true,2024-01-01 00:00:00

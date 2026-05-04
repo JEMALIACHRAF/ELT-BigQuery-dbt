@@ -1,0 +1,62 @@
+name: dbt CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'dbt_project/**'
+
+jobs:
+  dbt-lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install dbt-bigquery==1.7.0 sqlfluff sqlfluff-templater-dbt
+
+      - name: Lint SQL with sqlfluff
+        run: |
+          cd dbt_project
+          sqlfluff lint models/ --dialect bigquery --templater dbt
+
+      - name: Authenticate to GCP (CI service account)
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY_CI }}
+
+      - name: dbt deps
+        run: cd dbt_project && dbt deps
+
+      - name: dbt compile (syntax check)
+        run: |
+          cd dbt_project
+          dbt compile --profiles-dir . --target dev
+
+      - name: dbt source freshness
+        run: |
+          cd dbt_project
+          dbt source freshness --profiles-dir . --target dev
+
+      - name: dbt run (dev schema)
+        run: |
+          cd dbt_project
+          dbt run --profiles-dir . --target dev --threads 4
+
+      - name: dbt test
+        run: |
+          cd dbt_project
+          dbt test --profiles-dir . --target dev --store-failures
+
+      - name: Upload test failures artifact
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dbt-test-failures
+          path: dbt_project/target/

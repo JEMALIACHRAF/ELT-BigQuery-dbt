@@ -1,0 +1,23 @@
+ecommerce_bigquery:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+      project: "projet-dbt-495310"
+      dataset: dev_ecommerce
+      threads: 4
+      timeout_seconds: 300
+      location: EU
+      priority: interactive
+
+    prod:
+      type: bigquery
+      method: service-account
+      project: "projet-dbt-495310"
+      dataset: prod_ecommerce
+      keyfile: "{{ env_var('GOOGLE_APPLICATION_CREDENTIALS') }}"
+      threads: 8
+      timeout_seconds: 600
+      location: EU
+      priority: batch

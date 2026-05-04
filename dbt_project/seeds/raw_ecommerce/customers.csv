@@ -1,0 +1,6 @@
+customer_id,email,first_name,last_name,country_code,date_of_birth,created_at,is_email_verified,is_newsletter_subscribed,_fivetran_synced
+C001,alice@email.com,Alice,Martin,FR,1990-05-12,2023-01-10 08:00:00,true,true,2024-01-01 00:00:00
+C002,bob@email.com,Bob,Dupont,FR,1985-03-22,2023-02-14 09:00:00,true,false,2024-01-01 00:00:00
+C003,carlos@email.com,Carlos,Garcia,ES,1992-07-08,2023-03-01 10:00:00,true,true,2024-01-01 00:00:00
+C004,diana@email.com,Diana,Schmidt,DE,1988-11-30,2023-04-20 11:00:00,false,false,2024-01-01 00:00:00
+C005,emma@email.com,Emma,Wilson,GB,1995-01-15,2023-05-05 12:00:00,true,true,2024-01-01 00:00:00

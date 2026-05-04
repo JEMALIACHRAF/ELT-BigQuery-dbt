@@ -1,0 +1,9 @@
+version: 2
+
+seeds:
+  - name: orders
+    config:
+      column_types:
+        total_amount: FLOAT64
+        shipping_cost: FLOAT64
+        discount_amount: FLOAT64

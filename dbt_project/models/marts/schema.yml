@@ -1,0 +1,93 @@
+version: 2
+
+models:
+  - name: fct_daily_revenue
+    description: >
+      Daily revenue aggregated by country and order status.
+      This is the source of truth for all finance dashboards.
+      Refreshed every day at 6am CET by Airflow.
+    meta:
+      owner: "data-team@company.com"
+      domain: "finance"
+      freshness_sla: "daily"
+    columns:
+      - name: order_date
+        description: "Date of the order (partition key)"
+        tests:
+          - not_null
+      - name: country_code
+        tests:
+          - not_null
+      - name: nb_orders
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+      - name: confirmed_revenue_eur
+        description: "Revenue from delivered orders only"
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+      - name: cancellation_rate
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: "between 0 and 1"
+
+  - name: dim_customers
+    description: >
+      Customer 360 dimension table with lifetime metrics and RFM segmentation.
+      Contains PII — access restricted to marketing and data teams.
+      Refreshed daily.
+    meta:
+      owner: "data-team@company.com"
+      domain: "marketing"
+      pii: true
+      freshness_sla: "daily"
+    columns:
+      - name: customer_id
+        description: "Primary key — unique customer identifier"
+        tests:
+          - unique
+          - not_null
+      - name: email
+        tests:
+          - unique
+          - not_null
+      - name: customer_segment
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["active", "at_risk", "churned", "no_purchase"]
+      - name: rfm_total_score
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: "between 0 and 15"
+      - name: total_revenue_eur
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+
+  - name: fct_product_performance
+    description: >
+      Monthly product performance: revenue, units sold, return rate.
+      Partitioned by month, clustered by category and country.
+    meta:
+      owner: "data-team@company.com"
+      domain: "product"
+    columns:
+      - name: order_date
+        description: "Month (first day of month)"
+        tests:
+          - not_null
+      - name: product_id
+        tests:
+          - not_null
+      - name: units_sold
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: "> 0"
+      - name: return_rate
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: "between 0 and 1"
